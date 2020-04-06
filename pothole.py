@@ -27,7 +27,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = ''
 app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = ''
+app.config['MYSQL_DB'] = 'test'
 
 mysql = MySQL(app)
 
@@ -204,14 +204,13 @@ def compute(image_path):
         numofboxes=len(boxes)
     return numofboxes
     
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/")
 def potholehome():
-    cur = mysql.connection.cursor()         #cur.execute('sql query here')
-                                            #afterwards mysql.connection.commit()
-                                            #next cur.close()
     return render_template("potholehome.html") 
 @app.route("/image", methods = ['POST','GET'])
 def image():
+    cur = mysql.connection.cursor()
+
     numboxes=0
     if(request.method == 'POST'):
         print("POST Request received")
@@ -223,8 +222,14 @@ def image():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         image_path = "/home/"+str(username)+"/potholeml/uploads/"+str(filename)
         numboxes=compute(image_path)#numboxes=num of potholes
+
         #SQL QUery to insert latitude,longitude and Number of potholes to database
+        #Tablename COORDS attributes two floats columnames: lat, long
+        cur.execute("INSERT INTO COORDS(lat, long) VALUES(%f, %f)", (latitude,longitude))
+        mysql.connection.commit()
+        cur.close()
         #os.remove(image_path)
+
     return "File uploaded sucessfully,number of potholes:"+str(numboxes)
 
 
