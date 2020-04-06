@@ -11,6 +11,7 @@ from keras.preprocessing.image import img_to_array
 from matplotlib import pyplot
 from matplotlib.patches import Rectangle
 from flask import Flask, render_template, request
+from flask import_mysqldb import MySQL
 from tensorflow.python.keras.backend import set_session
 from werkzeug.utils import secure_filename
 
@@ -22,6 +23,14 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = ''
+app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_DB'] = ''
+
+mysql = MySQL(app)
+
 sess = tf.Session()
 graph = tf.get_default_graph()
 
@@ -195,8 +204,11 @@ def compute(image_path):
         numofboxes=len(boxes)
     return numofboxes
     
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def potholehome():
+    cur = mysql.connection.cursor()         #cur.execute('sql query here')
+                                            #afterwards mysql.connection.commit()
+                                            #next cur.close()
     return render_template("potholehome.html") 
 @app.route("/image", methods = ['POST','GET'])
 def image():
